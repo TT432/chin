@@ -4,6 +4,7 @@ plugins {
     id 'idea'
     id 'maven-publish'
     id 'net.neoforged.gradle.userdev' version '7.0.145'
+    id 'signing'
 }
 
 tasks.named('wrapper', Wrapper).configure {
@@ -93,6 +94,15 @@ tasks.named('test', Test) {
     useJUnitPlatform()
 }
 
+signing {
+    sign publishing.publications
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
 dependencies {
     // Specify the version of Minecraft to use.
     // Depending on the plugin applied there are several options. We will assume you applied the userdev plugin as shown above.
@@ -131,16 +141,47 @@ tasks.withType(ProcessResources).configureEach {
     }
 }
 
-// Example configuration to allow publishing using the maven-publish plugin
 publishing {
     publications {
-        register('mavenJava', MavenPublication) {
+        mavenJava(MavenPublication) {
             from components.java
+
+            pom {
+                name = project.mod_name
+                description = project.mod_description
+                url = "https://github.com/${githubUserName}/${githubRepoName}"
+
+                scm {
+                    connection = "scm:git:git://github.com/${githubUserName}/${githubRepoName}.git"
+                    developerConnection = "scm:git:ssh://github.com/${githubUserName}/${githubRepoName}.git"
+                    url = "https://github.com/${githubUserName}/${githubRepoName}"
+                }
+
+                licenses {
+                    license {
+                        name = 'MIT'
+                        url = "https://github.com/${githubUserName}/${githubRepoName}/tree/master/LICENSE"
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'tt432'
+                        name = 'Chin'
+                        email = '2437315224@qq.com'
+                    }
+                }
+            }
         }
     }
+
     repositories {
         maven {
-            url "file://${project.projectDir}/repo"
+            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            credentials {
+                username = project.findProperty("ossrhUsername")
+                password = project.findProperty("ossrhPassword")
+            }
         }
     }
 }
